@@ -68,6 +68,12 @@ public:
     int idx = locate(addr, size);
     if (idx <= 0) return -1;
     if (longest_[idx] != node_size_[idx]) return -1; // not fully free exactly here
+    // ensure no ancestor is a wholly allocated block covering this range
+    int p = idx;
+    while (p > 1) {
+      p >>= 1;
+      if (longest_[p] == 0) return -1;
+    }
 
     longest_[idx] = 0;
     update_up(idx);
