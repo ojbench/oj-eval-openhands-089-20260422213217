@@ -110,9 +110,10 @@ def main():
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Git submission sub-command
-    submit_parser = subparsers.add_parser("submit", help="Submit Git repository")
+    submit_parser = subparsers.add_parser("submit", help="Submit Git repository or local file")
     submit_parser.add_argument("--problem-id", type=int, required=True, help="Problem ID")
-    submit_parser.add_argument("--git-url", type=str, required=True, help="Git repository URL")
+    submit_parser.add_argument("--git-url", type=str, required=False, help="Git repository URL")
+    submit_parser.add_argument("--file", type=str, required=False, help="Path to local source file (e.g., src.hpp)")
 
     # Sub-command for checking submission status
     status_parser = subparsers.add_parser("status", help="Check submission status")
@@ -131,7 +132,16 @@ def main():
     client = ACMOJClient(args.token)
 
     if args.command == "submit":
-        result = client.submit_git(args.problem_id, args.git_url)
+        if args.file and os.path.exists(args.file):
+            # read file and submit as regular code
+            with open(args.file, 'r') as f:
+                code = f.read()
+            data = {"language": "cpp", "code": code}
+            result = client._make_request("POST", f"/problem/{args.problem_id}/submit", data=data)
+            if result and 'id' in result:
+                client._save_submission_id(result['id'])
+        else:
+            result = client.submit_git(args.problem_id, args.git_url)
     elif args.command == "status":
         result = client.get_submission_detail(args.submission_id)
     elif args.command == "abort":
