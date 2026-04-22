@@ -1,0 +1,13 @@
+# Ignore build artifacts and core dumps
+*.o
+*.out
+*.a
+*.so
+*.dylib
+*.exe
+*.log
+core
+core.*
+/tmp/
+build/
+.dist/
